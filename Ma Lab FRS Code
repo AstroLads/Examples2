@@ -1,0 +1,51 @@
+int fsrPin = 0;
+int fsrReading;
+int fsrVoltage;
+unsigned long fsrResistance;
+unsigned long fsrConductance;
+long fsrForce;
+
+const float areaInSquareMillimeters = 0.7854 ;
+
+void setup(void) {
+  Serial.begin(9600);
+}
+
+void loop(void) {
+  fsrReading = analogRead(fsrPin);
+  fsrVoltage = map(fsrReading, 0, 1023, 0, 5000);
+
+  if (fsrVoltage == 0) {
+    Serial.println("No pressure");
+  } else {
+    fsrResistance = 5000 - fsrVoltage;
+    fsrResistance *= 10000;
+    fsrResistance /= fsrVoltage;
+
+    fsrConductance = 1000000;
+    fsrConductance /= fsrResistance;
+
+    if (fsrConductance <= 1000) {
+      fsrForce = fsrConductance / 80;
+    } else {
+      fsrForce = fsrConductance - 1000;
+      fsrForce /= 30;
+    }
+
+    float forceInmmhg = static_cast<float>(fsrForce);
+    float forceInPascals = forceInmmhg / areaInSquareMillimeters;
+    float pressureInPSI = forceInPascals / 133.322;
+
+    Serial.print("Analog Reading: ");
+    Serial.println(fsrReading);
+
+    Serial.print("Pressure in mmHg: ");
+    Serial.println(forceInmmhg);
+
+    Serial.print("Pressure in PSI: ");
+    Serial.println(pressureInPSI);
+  }
+
+  Serial.println("--------------------");
+  delay(100);
+}
